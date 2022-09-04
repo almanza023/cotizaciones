@@ -1,0 +1,2 @@
+[08-Apr-2021 17:52:25 UTC] PHP Warning:  require(/home/devappco/public_html/citas./laravel/vendor/autoload.php): failed to open stream: No such file or directory in /home/devappco/public_html/citas/index.php on line 24
+[08-Apr-2021 17:52:25 UTC] PHP Fatal error:  require(): Failed opening required '/home/devappco/public_html/citas./laravel/vendor/autoload.php' (include_path='.:/opt/alt/php74/usr/share/pear') in /home/devappco/public_html/citas/index.php on line 24
