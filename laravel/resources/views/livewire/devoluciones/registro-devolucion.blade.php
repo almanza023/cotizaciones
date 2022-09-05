@@ -35,44 +35,41 @@
            @if(count($listadoPiezas)>0)
            <table class="table table-hover table-responsive">
             <tr>
-                <th colspan="5">FECHA</th>
+                <th colspan="2">FECHA</th>
                 <th colspan="2">
                     <input type="date" class="form-control" wire:model="fecha">
                     @error('fecha') <span class="text-danger error">{{ $message }}</span>@enderror
                 </th>
             </tr>
             <tr>
-                <th colspan="5">FECHA INICIO</th>
+                <th colspan="2">FECHA INICIO</th>
                 <th colspan="2">
                     {{ $fecha_corte }}
                 </th>
             </tr>
             <tr>
-                <th colspan="5">N° DIAS</th>
+                <th colspan="2">N° DIAS</th>
                 <th colspan="2">
                     {{ $dias }}
                 </th>
             </tr>
             <tr>
-                <th colspan="7">DETALLES DE ELEMENTOS ENTREGADOS</th>
+                <th colspan="6">DETALLES DE ELEMENTOS ENTREGADOS</th>
             </tr>
 
             <tr>
                 <th>#</th>
-                <th>CODIGO INTERNO</th>
                 <th>NOMBRE</th>
                 <th>CANTIDAD ENTREGADA</th>
-                <th colspan="2">CANTIDAD A DEVOLVER</th>
+                <th >CANTIDAD A DEVOLVER</th>
             </tr>
             @forelse ($listadoPiezas as $key => $item)
             <tr>
                 <td width="10">{{ $loop->iteration }}</td>
-                <td>{{ $item->id}}</td>
                 <td>{{ $item->pieza->nombre}}</td>
                 <td >{{ $item->entregadas }}</td>
-
                 @if($item->entregadas!=0)
-                <td colspan="2">
+                <td >
                     <input class="form-control" wire:model="cantidad1.{{ $key }}.can"  />
                 </td>
 
@@ -83,6 +80,10 @@
                     <td colspan="6">No existen datos</td>
                 </tr>
             @endforelse
+            <tr>
+                <th colspan="2">TOTAL DE PIEZAS</th>
+                <th>{{ $total }}</th>
+            </tr>
         </table>
         <br>
             <button type="button" class="btn btn-success btn-block" wire:click="store">Guardar Devolución </button>

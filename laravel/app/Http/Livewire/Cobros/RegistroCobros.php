@@ -18,8 +18,8 @@ use Livewire\Component;
 
 class RegistroCobros extends Component
 {
-    public $proyecto_id, $usuario_id, $matriz=[], $categoria_id,
-    $proyecto, $fecha1, $fecha2, $dias, $date, $nuevaFecha;
+    public $proyecto_id, $usuario_id, $matriz=[], $categoria_id, $porcentaje,
+    $proyecto, $fecha1, $fecha2, $dias, $date, $nuevaFecha, $total=0;
 
 
     public function mount($id)
@@ -44,6 +44,7 @@ class RegistroCobros extends Component
         if(!empty($procat)){
             $this->fecha1=$procat->ultima_fecha;
         }
+        $this->porcentaje=19;
         $this->categorias=CategoriaProyecto::getCategoriasByProyecto($this->proyecto_id);
         $this->usuario_id=auth()->user()->id;
         return view('livewire.cobros.registro-cobros');
@@ -55,6 +56,7 @@ class RegistroCobros extends Component
             'fecha1' => 'required|date',
             'fecha2' => 'required|date',
         ]);
+        $this->total=EntregaProyecto::getTotalPiezas($this->proyecto_id, $this->categoria_id, 1);
         $this->matriz=EntregaProyecto::getEntregasFechas($this->proyecto_id, $this->fecha1, $this->fecha2, $this->categoria_id, 1);
 
         $this->date=Carbon::now()->format('Y-m-d');
@@ -77,9 +79,17 @@ class RegistroCobros extends Component
             $conseSubcobros=ConsecutivoProyecto::getSubcobros($this->proyecto_id)+1;
             $numeroEntrega=Entrega::aumentaNumeroEntrega($this->proyecto_id);
 
+            //Actualizar Proyecto CATEGORIA
+            $procat=CategoriaProyecto::getId($this->proyecto_id, $this->categoria_id);
+            $procat->ultima_fecha=$this->nuevaFecha;
+            $procat->ultima_entrega=$numeroEntrega;
+            $procat->save();
+
+            //Actualizamos en proyectos
             $this->proyecto->ultima_entrega=$numeroEntrega;
             $this->proyecto->ultima_fecha=$this->nuevaFecha;
             $this->proyecto->save();
+
              //generar Un Cobro
              $cobro=Cobro::create([
                 'proyecto_id'=>$this->proyecto_id,
@@ -116,16 +126,10 @@ class RegistroCobros extends Component
                 $acum_iva=0;
                 $acum_total=0;
 
-                //Actualizar Proyecto CATEGORIA
-                $procat=CategoriaProyecto::getId($this->proyecto_id, $this->categoria_id);
-                $procat->ultima_fecha=$this->nuevaFecha;
-                $procat->ultima_entrega=$numeroEntrega;
-                $procat->save();
-
             foreach ($this->matriz as $item) {
-                $item->estado=0;
-                $item->save();
-                if($this->categoria_id>=1 && $this->categoria_id<=2){
+                    $item->estado=0;
+                    $item->save();
+                    $pieza=Pieza::find($item->pieza_id);
                     $peso=$item->pieza->peso;
                     $pesodia=$this->dias * $peso * $item->restante;
                     //Registrar Subcorte
@@ -133,6 +137,13 @@ class RegistroCobros extends Component
                     $pesototal=$pesototal+$peso;
                     $cantidadtotal=$cantidadtotal+$item->restante;
                     $pesodiatotal=$pesodiatotal+$pesodia;
+                     //MATERIAL ENCOFRADO
+                    $subtotal=  ($item->restante  * $pieza->precio * $this->dias);
+                    $iva=  $subtotal * ($this->porcentaje/100);
+                    $total= $subtotal + $iva;
+                    $acum_subtotal=$acum_subtotal + $subtotal;
+                    $acum_iva=$acum_iva + $iva;
+                    $acum_total=$acum_total + $total;
                     $subcobro=Subcobro::create([
                         'pieza_id'=>$item->pieza_id,
                         'proyecto_id'=>$this->proyecto_id,
@@ -144,37 +155,12 @@ class RegistroCobros extends Component
                         'dias'=>$this->dias,
                         'fecha1'=>$this->fecha1,
                         'fecha2'=>$this->fecha2,
-                        'pesodia'=>$pesodia
+                        'pesodia'=>$pesodia,
+                        'valor'=>$pieza->precio,
+                        'subtotal'=>$subtotal,
+                        'iva'=>$iva,
+                        'total'=>$total
                     ]);
-                }
-                //MATERIAL ENCOFRADO
-            if($this->categoria_id>=3 && $this->categoria_id<=4){
-                $pieza=Pieza::find($item->pieza_id);
-                $subtotal=  ($item->restante  * $pieza->precio * $this->dias);
-                $iva=  $subtotal * ($this->porcentaje/100);
-                $total= $subtotal + $iva;
-
-                $acum_subtotal=$acum_subtotal + $subtotal;
-                $acum_iva=$acum_iva + $iva;
-                $acum_total=$acum_total + $total;
-
-                //Registrar Subcorte
-                $subcobro=Subcobro::create([
-                    'pieza_id'=>$item->pieza_id,
-                    'proyecto_id'=>$this->proyecto_id,
-                    'categoria_id'=>$this->categoria_id,
-                    'cobro_id'=>$cobro->id,
-                    'numero'=>$conseSubcobros,
-                    'cantidad'=>$item->restante,
-                    'valor'=>$pieza->precio,
-                    'subtotal'=>$subtotal,
-                    'dias'=>$this->dias,
-                    'fecha1'=>$this->fecha1,
-                    'fecha2'=>$this->fecha2,
-                    'iva'=>$iva,
-                    'total'=>$total
-                ]);
-            }
                 //Guardar detalles de nueva entrega
                 $det=DetalleEntrega::create([
                     'entrega_id'=>$entregaDetalle->id,
@@ -182,7 +168,6 @@ class RegistroCobros extends Component
                     'cantidad'=>$item->restante,
                     'fecha_entrega'=>$this->nuevaFecha,
                  ]);
-
                 //Generar Nueva Entrega General
                 EntregaProyecto::create(
                     [
@@ -197,26 +182,18 @@ class RegistroCobros extends Component
                     ]);
 
             }
-            if($this->categoria_id>=1 && $this->categoria_id<=2){
-                //Actualiar Cobro Andamio
+
+               //Actualiar Cobro
                $cobro->piezas=$piezas;
                $cobro->estado=1;
                $cobro->pesototal=$pesototal;
                $cobro->cantidadtotal=$cantidadtotal;
                $cobro->pesodiatotal=$pesodiatotal;
+               $cobro->subtotal=$acum_subtotal;
+               $cobro->iva=$acum_iva;
+               $cobro->total=$acum_total;
                $cobro->save();
 
-           }
-
-           if($this->categoria_id>=3 && $this->categoria_id<=4){
-               //Actualiar Cobro Encofrado
-              $cobro->estado=1;
-              $cobro->subtotal=$acum_subtotal;
-              $cobro->iva=$acum_iva;
-              $cobro->total=$acum_total;
-              $cobro->save();
-
-          }
              $const=ConsecutivoProyecto::getProyectoId($this->proyecto_id);
              $const->subcobros=$conseSubcobros;
              $const->save();

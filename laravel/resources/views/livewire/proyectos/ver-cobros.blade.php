@@ -34,6 +34,7 @@
 
                 @forelse ($data as $item)
                 <table class="table table-hover table-responsive">
+                    @if ($item->categoria_id <= 2)
                     <tr class="bg-info">
                         <th colspan="8">DETALLES DE COBRO N° {{ $loop->iteration }}</th>
                     </tr>
@@ -47,16 +48,38 @@
                         <th>TOTAL</th>
                         <th>VER DETALLES</th>
                     </tr>
+                    @else
+                    <tr class="bg-primary">
+                        <th colspan="8">DETALLES DE COBRO N° {{ $loop->iteration }}</th>
+                    </tr>
+                    <tr>
+                        <th>#</th>
+                        <th>FECHA 1</th>
+                        <th>FECHA 2</th>
+                        <th>CANTIDAD DE DÍAS</th>
+                        <th>SUBTOTAL</th>
+                        <th>IVA</th>
+                        <th>TOTAL</th>
+                        <th>VER DETALLES</th>
+                    </tr>
+                    @endif
                 <tr>
                     <td width="10">{{ $loop->iteration }}</td>
                     <td>{{ $item->fecha1 }}</td>
                     <td>{{ $item->fecha2 }}</td>
                     <td>{{ $item->dias }}</td>
-                    <td>{{ $item->cantidadtotal }}</td>
-                    <td>{{ $item->pesototal }}</td>
-                    <td>{{ $item->pesodiatotal }}</td>
+                   @if ($item->categoria_id <= 2)
+                   <td>{{ $item->cantidadtotal }}</td>
+                   <td>{{ $item->pesototal }}</td>
+                   <td>{{ $item->pesodiatotal }}</td>
+                   @else
+                   <td>$ {{ number_format($item->subtotal) }}</td>
+                   <td>$ {{ number_format($item->iva) }}</td>
+                   <td>$ {{ number_format($item->total) }}</td>
+
+                   @endif
                     <td>
-                        <button data-toggle="modal" data-target="#modalCreate" wire:click="ver({{ $item->id }})" class="btn btn-outline-info btn-sm"><i class="typcn typcn-edit"></i></button>
+                        <button data-toggle="modal" data-target="#modalCreate" wire:click="ver({{ $item->id }}, {{ $item->categoria_id }})" class="btn btn-outline-info btn-sm"><i class="typcn typcn-edit"></i></button>
                     </td>
 
                 </tr>

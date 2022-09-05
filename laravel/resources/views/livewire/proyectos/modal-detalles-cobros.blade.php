@@ -16,8 +16,14 @@
                                 <th>Pieza</th>
                                 <th>N° Días</th>
                                 <th>Cantidad</th>
-                                <th>Peso (Kg)</th>
-                                <th>Peso Día</th>
+                              @if($sel_categoria <= 2)
+                              <th>Peso (Kg)</th>
+                              <th>Peso Día</th>
+                              @else
+                              <th>Subtotal</th>
+                              <th>Iva</th>
+                              <th>Total</th>
+                              @endif
                                 <th>Fecha Inicio</th>
                                 <th>Fecha Fin</th>
                             </tr>
@@ -26,8 +32,14 @@
                                     <td>{{ $item->pieza->nombre }}</td>
                                     <td>{{ $item->dias }}</td>
                                     <td>{{ $item->cantidad }}</td>
+                                    @if($sel_categoria <= 2)
                                     <td>{{ $item->peso }}</td>
-                                    <td>{{ $item->pesodia }}</td>
+                                    <td>{{ $item->pesodia}}</td>
+                                  @else
+                                       <td>$ {{ number_format($item->subtotal) }}</td>
+                                       <td>$ {{ number_format($item->iva) }}</td>
+                                       <td>$ {{ number_format($item->total) }}</td>
+                                  @endif
                                     <td>{{ $item->fecha1 }}</td>
                                     <td>{{ $item->fecha2 }}</td>
                                 </tr>

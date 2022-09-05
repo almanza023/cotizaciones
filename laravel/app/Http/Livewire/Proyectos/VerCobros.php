@@ -9,7 +9,7 @@ use Livewire\Component;
 
 class VerCobros extends Component
 {
-    public $proyecto_id, $categoria_id, $data=[], $detalles=[];
+    public $proyecto_id, $categoria_id, $data=[], $detalles=[], $sel_categoria;
 
     public function mount($id)
     {
@@ -23,7 +23,8 @@ class VerCobros extends Component
         return view('livewire.proyectos.ver-cobros');
     }
 
-    public function ver($id){
+    public function ver($id, $categoria){
+        $this->sel_categoria=$categoria;
         $this->detalles=Subcobro::getDetalles($id);
 
     }

@@ -38,12 +38,7 @@
             <tr>
                 <th colspan="7">DETALLES DE ENTREGA</th>
             </tr>
-            <tr>
-                <th>#</th>
-                <th>NOMBRE</th>
-                <th>CANTIDAD</th>
-                <th>FECHA ENTREGA</th>
-            </tr>
+
             <tr>
                 <th>#</th>
                 <th>NOMBRE</th>
@@ -63,6 +58,10 @@
                     <td colspan="3">No existen datos</td>
                 </tr>
             @endforelse
+            <tr>
+                <th colspan="2">TOTAL DE PEIZAS</th>
+                <th>{{ $total }}</th>
+            </tr>
         </table>
         <a href="{{ route('proyectos') }}" class="btn btn-primary btn-block">Aceptar</a>
 

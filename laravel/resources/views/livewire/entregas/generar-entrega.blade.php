@@ -85,6 +85,7 @@
                 @endif
 
     @if(!empty($detalles))
+    <br>
       <div class="card" >
         <div class="card-header with-border">
           <h4 class="card-title">PIEZAS</h4>
@@ -96,29 +97,45 @@
                <tr class="bg-warning">
                    <th colspan="7"><center>DETALLES PIEZAS AGREGADAS</center></th>
                </tr>
-               <tr>
+              @if($categoria_id <= 2)
+              <tr>
                 <th>#</th>
                 <th>NOMBRE</th>
                 <th>CANTIDAD</th>
                 <th>PESO KG</th>
+              </tr>
+              @else
+              <tr>
+                <th>#</th>
+                <th>NOMBRE</th>
+                <th>CANTIDAD</th>
                 <th>PRECIO</th>
                 <th>SUBTOTAL</th>
               </tr>
+              @endif
 
               @foreach ($detalles as $item)
                  <tr>
                     <td>{{ $loop->iteration}}</td>
                     <td>{{ $item->pieza->nombre }}</td>
                     <td>{{ $item->cantidad }}</td>
+                    @if($categoria_id <= 2)
                     <td>{{ $item->pieza->peso }}</td>
+                    @else
                     <td>${{ number_format($item->pieza->precio) }}</td>
                     <td>${{ number_format($item->pieza->precio * $item->cantidad) }}</td>
+                    @endif
                     <td>
                         <button type="button" wire:click="quitar({{ $item->id }})" class="btn btn-danger">Quitar</button>
                     </td>
                 </tr>
 
               @endforeach
+             <tr>
+                    <th>CANTIDAD DE PIEZAS</th>
+                    <td>{{ $canpiezas }}</td>
+                </tr>
+
               </table>
               <div wire:loading>
                 Procesando...

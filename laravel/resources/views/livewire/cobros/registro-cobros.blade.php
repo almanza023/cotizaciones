@@ -52,8 +52,8 @@
     <br>
     @if(count($matriz)>0)
     <div class="card">
-        <div class="card-header with-border">
-          <h4 class="card-title">RESULTADO</h4>
+        <div class="card-header with-border bg-info">
+          <h4 class="card-title ">DETALLES </h4>
         </div>
         <!-- /.box-header -->
         <div class="card-body">
@@ -63,13 +63,14 @@
                     <table class="table table-hover">
                         <tr>
                             <th>
-                                Cantidad Días Cobrados
+                                Cantidad Días a cobrar
                             </th>
                             <td>
                                 {{ $dias }}
                             </td>
                         </tr>
                         <tr>
+                            <td style="width: 8%">N°</td>
                             <th>Pieza</th>
                             <th>Fecha Entrega</th>
                             <th>Cantidad</th>
@@ -78,12 +79,17 @@
                         @foreach ($matriz as $item)
 
                             <tr>
+                                <th style="width: 8%">{{ $loop->iteration }}</th>
                                 <td>{{ $item->pieza->nombre }}</td>
                                 <td>{{ $item->fecha }}</td>
                                 <td>{{ $item->restante }}</td>
                             </tr>
 
                         @endforeach
+                        <tr>
+                            <th colspan="2">TOTAL DE PIEZAS</th>
+                            <th>{{ $total }}</th>
+                        </tr>
                     </table>
 
 

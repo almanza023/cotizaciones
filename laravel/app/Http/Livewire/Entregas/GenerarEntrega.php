@@ -25,7 +25,7 @@ class GenerarEntrega extends Component
     public $proyecto_id, $cotizacion_id, $usuario, $fechaUtlima, $detallesUltimaEntrega,
      $obj, $data, $porcentaje,
     $categoria_id, $categorias, $cantidad, $fecha, $nombre_proyecto;
-    public $registrado=false, $detalles, $proyecto, $dias;
+    public $registrado=false, $detalles, $proyecto, $dias, $valor_total, $valor_subtotal, $valor_iva, $canpiezas;
 
     public $entrega_id, $contacto, $descripcion, $total;
 
@@ -81,20 +81,41 @@ class GenerarEntrega extends Component
         $validated = $this->validate([
             'cantidad' => 'required',
         ]);
-        $det=DetalleEntrega::updateOrCreate(
-            [
-                'entrega_id' =>  ($this->entrega_id),
-                'pieza_id' =>  ($id),
-            ],
-            [
-                'entrega_id' =>  ($this->entrega_id),
-                'pieza_id' =>  ($id),
-                'cantidad' => ($this->cantidad),
-                'estado'=>0
-            ]);
-        $this->detalles=DetalleEntrega::getEntrega($this->entrega_id);
-        $this->cantidad='';
+        $pieza=Pieza::find($id);
+        if(!empty($pieza)){
 
+            $det=DetalleEntrega::updateOrCreate(
+                [
+                    'entrega_id' =>  ($this->entrega_id),
+                    'pieza_id' =>  ($id),
+                ],
+                [
+                    'entrega_id' =>  ($this->entrega_id),
+                    'pieza_id' =>  ($id),
+                    'cantidad' => ($this->cantidad),
+                    'fecha_entrega' => ($this->fecha),
+                    'precio' => ($pieza->precio),
+                    'estado'=>0
+                ]);
+            $this->detalles=DetalleEntrega::getEntrega($this->entrega_id);
+            $this->cantidad='';
+            $this->canpiezas=DetalleEntrega::getCantidadPiezas($this->entrega_id);
+        }else{
+            session()->flash('advertencia', 'PIEZA NO EXISTE');
+        }
+    }
+
+    public function quitar($id){
+        $det=DetalleEntrega::find($id);
+        $pieza_id=$det->pieza_id;
+        $det->delete();
+        $entrega=EntregaProyecto::eliminar($pieza_id, $this->proyecto_id, $this->numero);
+        if(!empty($entrega)){
+            $entrega->delete();
+
+        }
+        $this->detalles=DetalleEntrega::getEntrega($this->entrega_id);
+        $this->canpiezas=DetalleEntrega::getCantidadPiezas($this->entrega_id);
     }
 
     public function store(){
@@ -131,15 +152,7 @@ class GenerarEntrega extends Component
         $this->registrado=true;
     }
 
-    public function quitar($id){
-        $det=DetalleEntrega::find($id);
-        $entrega=EntregaProyecto::eliminar($det->pieza_id, $this->proyecto_id, $this->numero);
-        if(!empty($entrega)){
-            $entrega->delete();
-            $det->delete();
-        }
-        $this->detalles=DetalleEntrega::getEntrega($this->entrega_id);
-    }
+
 
     public function finalizar(){
         DB::beginTransaction();
@@ -147,23 +160,24 @@ class GenerarEntrega extends Component
         $const=ConsecutivoProyecto::getProyectoId($this->proyecto_id);
         $const->numero=$this->numero;
         $const->save();
-
         $conseSubcobros=ConsecutivoProyecto::getSubcobros($this->proyecto_id)+1;
         $nuevaFecha=Carbon::createFromDate($this->fecha)->addDay()->format('Y-m-d');
 
+        //Actualizar Proyecto CATEGORIA
+        $procat=CategoriaProyecto::getId($this->proyecto_id, $this->categoria_id);
+        $procat->ultima_fecha=$nuevaFecha;
+        $procat->ultima_entrega=$this->numero;
+        $procat->save();
 
-         //Registrar nuevas piezas y actualizar existentes
-         foreach ($this->detalles as $item) {
-            $entrega=EntregaProyecto::registar($this->proyecto_id, $item->pieza_id, $this->numero, '', $item->cantidad, $this->fecha);
-            Pieza::decrementar($item->pieza_id, $item->cantidad, $nuevaFecha);
-            $item->estado=1;
-            $item->save();
-         }
+        //Actualizar en Proyectos
+        $this->proyecto->ultima_entrega=$this->numero;
+        $this->proyecto->ultima_fecha=$nuevaFecha;
+        $this->proyecto->save();
 
-         //Se genera un cobro
+        //Se genera un cobro
             $cobro=Cobro::create([
                 'proyecto_id'=>$this->proyecto_id,
-                'categoria_id'=>$this->proyecto_id,
+                'categoria_id'=>$this->categoria_id,
                 'usuario_id'=>$this->usuario,
                 'fecha_corte'=>$nuevaFecha,
                 'fecha1'=>$this->fechaUtlima,
@@ -171,11 +185,7 @@ class GenerarEntrega extends Component
                 'dias'=>$this->dias,
                 'estado'=>0,
             ]);
-            //Actualizar Proyecto CATEGORIA
-            $procat=CategoriaProyecto::getId($this->proyecto_id, $this->categoria_id);
-            $procat->ultima_fecha=$nuevaFecha;
-            $procat->ultima_entrega=$this->numero;
-            $procat->save();
+
 
         //Obtener las piezas en terreno por categorias
         $this->data=EntregaProyecto::getProyecto($this->proyecto_id, $this->categoria_id);
@@ -191,35 +201,15 @@ class GenerarEntrega extends Component
         $acum_iva=0;
         $acum_total=0;
         foreach ($this->data as $item) {
-            $detalle=DetalleEntrega::getEntregaPieza($item->pieza_id);
-            //ANDAMIOS
-            if($this->categoria_id>=1 && $this->categoria_id<=2){
+                $pieza=Pieza::find($item->pieza_id);
                 $peso=$item->pieza->peso;
-                $pesodia= (($item->restante - $detalle->cantidad) * $item->pieza->peso  * $this->dias) + (($detalle->cantidad) * $item->pieza->peso  * 1);
+                $pesodia= ($item->restante * $item->pieza->peso  * $this->dias);
                 //Registrar Subcorte
                 $piezas++;
                 $pesototal=$pesototal+$peso;
                 $cantidadtotal=$cantidadtotal+$item->restante;
                 $pesodiatotal=$pesodiatotal+$pesodia;
-                $subcobro=Subcobro::create([
-                    'pieza_id'=>$item->pieza_id,
-                    'proyecto_id'=>$this->proyecto_id,
-                    'categoria_id'=>$this->categoria_id,
-                    'cobro_id'=>$cobro->id,
-                    'numero'=>$conseSubcobros,
-                    'cantidad'=>$item->restante,
-                    'peso'=>$peso,
-                    'dias'=>$this->dias,
-                    'fecha1'=>$this->fechaUtlima,
-                    'fecha2'=>$this->fecha,
-                    'pesodia'=>$pesodia
-                ]);
-            }
-
-            //MATERIAL ENCOFRADO
-            if($this->categoria_id>=3 && $this->categoria_id<=4){
-                $pieza=Pieza::find($item->pieza_id);
-                $subtotal=  (($item->restante - $detalle->cantidad) * $pieza->precio * $this->dias) + (($detalle->cantidad) * $pieza->precio * 1) ;
+                $subtotal=  ($item->restante  * $pieza->precio * $this->dias) ;
                 $iva=  $subtotal * ($this->porcentaje/100);
                 $total= $subtotal + $iva;
 
@@ -227,7 +217,6 @@ class GenerarEntrega extends Component
                 $acum_iva=$acum_iva + $iva;
                 $acum_total=$acum_total + $total;
 
-                //Registrar Subcorte
                 $subcobro=Subcobro::create([
                     'pieza_id'=>$item->pieza_id,
                     'proyecto_id'=>$this->proyecto_id,
@@ -237,43 +226,111 @@ class GenerarEntrega extends Component
                     'cantidad'=>$item->restante,
                     'valor'=>$pieza->precio,
                     'subtotal'=>$subtotal,
+                    'peso'=>$peso,
                     'dias'=>$this->dias,
                     'fecha1'=>$this->fechaUtlima,
                     'fecha2'=>$this->fecha,
+                    'pesodia'=>$pesodia,
                     'iva'=>$iva,
                     'total'=>$total
                 ]);
-            }
-
             $item->estado=0;
             $item->save();
-            $nueva=EntregaProyecto::registrarEntrega($item, $this->fecha, $this->numero);
+            //Se Agrega el item nuevamente
+            $nueva=EntregaProyecto::registrarEntrega($item, $nuevaFecha, $this->numero);
         }
+        //Actualiar Cobro en Terreno
+        $cobro->piezas=$piezas;
+        $cobro->estado=1;
+        $cobro->pesototal=$pesototal;
+        $cobro->cantidadtotal=$cantidadtotal;
+        $cobro->pesodiatotal=$pesodiatotal;
+        $cobro->subtotal=$acum_subtotal;
+        $cobro->iva=$acum_iva;
+        $cobro->total=$acum_total;
+        $cobro->save();
 
-        if($this->categoria_id>=1 && $this->categoria_id<=2){
-             //Actualiar Cobro Andamio
-            $cobro->piezas=$piezas;
-            $cobro->estado=1;
-            $cobro->pesototal=$pesototal;
-            $cobro->cantidadtotal=$cantidadtotal;
-            $cobro->pesodiatotal=$pesodiatotal;
-            $cobro->save();
+        //Se genera un cobro de la nueva entrega
+        $cobro2=Cobro::create([
+            'proyecto_id'=>$this->proyecto_id,
+            'categoria_id'=>$this->categoria_id,
+            'usuario_id'=>$this->usuario,
+            'fecha_corte'=>$nuevaFecha,
+            'fecha1'=>$this->fecha,
+            'fecha2'=>$this->fecha,
+            'dias'=>1,
+            'estado'=>0,
+        ]);
 
-        }
+        //Reiniciar Contadores
+        $pesodia=0;
+        $piezas=0;
+        $pesototal=0;
+        $cantidadtotal=0;
+        $pesodiatotal=0;
+        $subtotal=0;
+        $total=0;
+        $iva=0;
+        $acum_subtotal=0;
+        $acum_iva=0;
+        $acum_total=0;
 
-        if($this->categoria_id>=3 && $this->categoria_id<=4){
-            //Actualiar Cobro Encofrado
-           $cobro->estado=1;
-           $cobro->subtotal=$acum_subtotal;
-           $cobro->iva=$acum_iva;
-           $cobro->total=$acum_total;
-           $cobro->save();
+        //Registrar nuevas piezas y actualizar existentes
+        foreach ($this->detalles as $item) {
 
-       }
+                $pieza=Pieza::find($item->pieza_id);
+
+                $peso=$pieza->peso;
+                $pesodia= ($item->cantidad * $peso  * 1);
+                //Registrar Subcorte
+                $piezas++;
+                $pesototal=$pesototal+$peso;
+                $cantidadtotal=$cantidadtotal+$item->cantidad;
+                $pesodiatotal=$pesodiatotal+$pesodia;
+
+                $subtotal=  ($item->cantidad  * $pieza->precio * 1) ;
+                $iva=  $subtotal * ($this->porcentaje/100);
+                $total= $subtotal + $iva;
+                $acum_subtotal=$acum_subtotal + $subtotal;
+                $acum_iva=$acum_iva + $iva;
+                $acum_total=$acum_total + $total;
+
+                $subcobro2=Subcobro::create([
+                    'pieza_id'=>$item->pieza_id,
+                    'proyecto_id'=>$this->proyecto_id,
+                    'categoria_id'=>$this->categoria_id,
+                    'cobro_id'=>$cobro2->id,
+                    'numero'=>$conseSubcobros,
+                    'cantidad'=>$item->cantidad,
+                    'valor'=>$pieza->precio,
+                    'subtotal'=>$subtotal,
+                    'peso'=>$peso,
+                    'dias'=>1,
+                    'fecha1'=>$this->fecha,
+                    'fecha2'=>$this->fecha,
+                    'pesodia'=>$pesodia,
+                    'iva'=>$iva,
+                    'total'=>$total
+                ]);
+            $entrega=EntregaProyecto::registar($this->proyecto_id, $item->pieza_id, $this->numero, 'Genereado por Entrega', $item->cantidad, $nuevaFecha);
+            Pieza::decrementar($item->pieza_id, $item->cantidad, $nuevaFecha);
+            $item->estado=1;
+            $item->save();
+         }
+            //Actualiar Cobro en Terreno
+            $cobro2->piezas=$piezas;
+            $cobro2->estado=1;
+            $cobro2->pesototal=$pesototal;
+            $cobro2->cantidadtotal=$cantidadtotal;
+            $cobro2->pesodiatotal=$pesodiatotal;
+            $cobro2->subtotal=$acum_subtotal;
+            $cobro2->iva=$acum_iva;
+            $cobro2->total=$acum_total;
+            $cobro2->save();
             //Actualizar consecutivo proyecto
-           $const=ConsecutivoProyecto::getProyectoId($this->proyecto_id);
-           $const->subcobros=$conseSubcobros;
-           $const->save();
+            $const=ConsecutivoProyecto::getProyectoId($this->proyecto_id);
+            $const->subcobros=$conseSubcobros;
+            $const->save();
 
          //Actualizar Estado Entrega
          $this->obj->estado=1;
@@ -287,6 +344,10 @@ class GenerarEntrega extends Component
          session()->flash('advertencia', $e->getMessage());
      }
     }
+
+
+
+
 
 
 }

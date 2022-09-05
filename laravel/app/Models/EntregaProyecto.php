@@ -76,6 +76,7 @@ class EntregaProyecto extends Model
                 'pieza_id' =>  ($data->pieza_id),
                 'categoria_id' =>  ($pieza->categoria_id),
                 'numero' =>  ($numero),
+                'tipo' =>  ('Generado por Entrega'),
                 'entregadas' => ($data->entregadas),
                 'restante' => ($data->restante),
                 'fecha'=>$fecha
@@ -87,6 +88,13 @@ class EntregaProyecto extends Model
         ->where('categoria_id', $categoria)
         ->whereBetween('fecha', [$fecha1, $fecha2])
         ->where('estado', $estado)->get();
+    }
+
+    public static function getTotalPiezas($id, $categoria, $estado){
+        return EntregaProyecto::where('proyecto_id', $id)
+        ->where('categoria_id', $categoria)
+        ->where('estado', $estado)
+        ->sum('restante');
     }
 
 

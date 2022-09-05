@@ -22,7 +22,7 @@ class RegistroDevolucion extends Component
 
     public $listadoPiezas=[], $proyecto, $usuario, $categoria_id;
     public $proyecto_id, $fecha, $cotizacion_id;
-    public $cantidad1=[], $fecha_corte, $dias;
+    public $cantidad1=[], $fecha_corte, $dias, $total;
     public function mount($id)
     {
         $this->proyecto_id = $id;
@@ -52,7 +52,11 @@ class RegistroDevolucion extends Component
         $this->fecha_corte=$ent->fecha;
        if(!empty($this->fecha) && !empty($this->categoria_id)){
         $this->dias=Carbon::createFromDate($this->fecha)->diffInDays(Carbon::createFromDate($this->fecha_corte)) + 1;
-       }
+
+        }
+        if(!empty($this->categoria_id)){
+            $this->total=EntregaProyecto::getTotalPiezas($this->proyecto_id, $this->categoria_id, 1);
+        }
 
        if(count($this->cantidad1)==0){
         foreach ($this->listadoPiezas as $item) {
@@ -204,7 +208,7 @@ class RegistroDevolucion extends Component
                     EntregaProyecto::create(
                         [
                             'proyecto_id' =>  ($this->proyecto_id),
-                            'categoria_id' =>  ($this->proyecto_id),
+                            'categoria_id' =>  ($this->categoria_id),
                             'pieza_id' =>  ($item['pieza_id']),
                             'tipo'=>'Generado por devoluciones',
                             'numero' =>  (2),

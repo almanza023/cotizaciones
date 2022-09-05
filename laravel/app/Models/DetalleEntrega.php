@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 class DetalleEntrega extends Model
 {
     protected $table = 'detalles_entregas';
-    protected $fillable = ['id', 'entrega_id', 'pieza_id', 'cantidad', 'devueltas',
+    protected $fillable = ['id', 'entrega_id', 'pieza_id', 'cantidad', 'devueltas', 'precio',
      'dias', 'restante', 'fecha_entrega', 'fecha_devolucion', 'estado'];
 
     public static function getActive(){
@@ -18,6 +18,9 @@ class DetalleEntrega extends Model
 
     public static function getEntrega($id){
         return DetalleEntrega::where('entrega_id', $id)->get();
+    }
+    public static function getCantidadPiezas($id){
+        return DetalleEntrega::where('entrega_id', $id)->sum('cantidad');
     }
 
     public static function getEntregaPieza($pieza){
