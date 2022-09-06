@@ -139,7 +139,7 @@
               </table>
               <div wire:loading>
                 Procesando...
-            </div>
+              </div>
               <div class="form-group" wire:loading.remove>
 
             </div>

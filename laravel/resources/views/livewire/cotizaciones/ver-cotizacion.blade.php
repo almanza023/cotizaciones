@@ -37,7 +37,9 @@
                 </tr>
                 <tr>
                     <td>{{ $data->cliente->nombre }}</td>
-                    <td>{{ $data->contacto }}</td>
+                    <td>
+                        <input type="text" class="form-control" wire:model.defer="contacto" value="{{ $contacto }}">
+                    </td>
                     <td>{{ $data->telefono }}</td>
                     <td>{{ $data->correo }}</td>
                 </tr>

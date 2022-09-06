@@ -11,7 +11,7 @@ class Piezas extends Component
 {
     use WithPagination;
     public $nombre, $categoria_id, $descripcion, $referencia, $cantidad, $peso, $peso_total,
-    $pieza_id,  $updateMode=false, $categorias=[], $categoria, $precio;
+    $pieza_id,  $updateMode=false, $categorias=[], $categoria, $precio=0;
     public $perPage = 10;
     public $search = '';
     public $orderBy = 'id';

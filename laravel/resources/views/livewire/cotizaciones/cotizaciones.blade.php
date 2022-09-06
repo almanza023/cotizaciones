@@ -116,4 +116,9 @@
     @include('livewire.cotizaciones.buscar-cliente')
     <!-- /.box -->
     <!-- /.box -->
+    <script >
+        window.addEventListener('cerrarModal', event => {
+            $('#modalCreate').modal('hide');
+        })
+    </script>
 </div>

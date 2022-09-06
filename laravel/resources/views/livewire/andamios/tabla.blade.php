@@ -44,19 +44,16 @@
                         <thead>
                             <tr>
                                 <th>NOMBRE</th>
-                                <th>DESCRIPCION</th>
-                                <th>LONGITUD</th>
                                 <th>PIEZAS</th>
-                                <th>PESO</th>
+                                <th>PESO TOTAL</th>
                                 <th>ACIONES</th>
+                                <th>VER PIEZAS</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($data as $item)
                             <tr>
                                 <td>{{ $item->nombre }}</td>
-                                <td>{{ $item->descripcion }}</td>
-                                <td>{{ $item->longitud }}</td>
                                 <td>{{ $item->piezas }}</td>
                                 <td>{{ $item->peso }}</td>
                                 <td>
@@ -67,7 +64,7 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <button data-toggle="modal" data-target="#modalCreate" wire:click="edit({{ $item->id }})" class="btn btn-outline-info btn-sm"><i class="typcn typcn-edit"></i></button>
+                                    <button data-toggle="modal" data-target="#modalVer" wire:click="ver({{ $item->id }})" class="btn btn-outline-info btn-sm"><i class="typcn typcn-edit"></i></button>
                                 </td>
                             </tr>
                             @empty

@@ -16,6 +16,7 @@ class VerCotizacion extends Component
 
     public $cotizacion_id;
     public $listadoAndamios, $listadoMaterial, $listadoProductos, $listadoServicios, $data, $fecha;
+    public $contacto;
     public $total_cot, $observaciones;
     public function mount($id)
     {
@@ -25,6 +26,7 @@ class VerCotizacion extends Component
     public function render()
     {
         $this->data=Cotizacion::find($this->cotizacion_id);
+        $this->contacto=$this->data->contacto;
         //Aprobado
         if($this->data->estado==2){
             $this->fecha=$this->data->fecha_aprobacion;

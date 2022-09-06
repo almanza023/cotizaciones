@@ -62,7 +62,6 @@
                         <thead>
                             <tr>
                                 <th>NOMBRE</th>
-                                <th>DESCRIPCION</th>
                                 <th>REFERENCIA</th>
                                 <th>CANTIDAD</th>
                                 <th>PESO</th>
@@ -75,7 +74,6 @@
                             @forelse ($data as $item)
                             <tr>
                                 <td>{{ $item->nombre }}</td>
-                                <td>{{ $item->descripcion }}</td>
                                 <td>{{ $item->referencia }}</td>
                                 <td>{{ $item->cantidad }}</td>
                                 <td>{{ $item->peso }}</td>

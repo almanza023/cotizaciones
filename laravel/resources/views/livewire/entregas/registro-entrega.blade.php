@@ -100,13 +100,17 @@
                 <tr>
                     <td >#</td>
                     <th>NOMBRE</th>
+                    <th>CANTIDAD DISPONIBLE</th>
                     <th>CANTIDAD SOLICITADAS</th>
                 </tr>
-                @forelse ($listadoMaterial as $item)
+                @forelse ($listadoMaterial as $key => $item)
                 <tr>
                     <td width="10">{{ $loop->iteration }}</td>
                     <td>{{ $item->pieza->nombre }}</td>
-                    <td>{{ $item->cantidad }}</th>
+                    <td>{{ $cantidad2[$key]['disponible'] }}</td>
+                    <td>
+                        <input class="form-control" wire:model="cantidad2.{{ $key }}.can" value="{{$item->cantidad}}" />
+                    </td>
                 </tr>
                 @empty
                     <tr>
@@ -125,12 +129,16 @@
                     <th>#</th>
                     <th>NOMBRE</th>
                     <th>CANTIDAD SOLICITADAS</th>
+                    <th>CANTIDAD A ENTREGAR</th>
                 </tr>
                 @forelse ($listadoProductos as $item)
                 <tr>
                     <td width="10">{{ $loop->iteration }}</td>
                     <td>{{ $item->pieza->nombre }}</td>
                     <td>{{ $item->cantidad }}</th>
+                        <td>
+                            <input class="form-control" wire:model="cantidad3.{{ $key }}.can" value="{{$item->cantidad}}" />
+                        </td>
                 </tr>
                 @empty
                     <tr>

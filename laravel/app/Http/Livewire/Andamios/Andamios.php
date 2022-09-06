@@ -4,6 +4,7 @@ namespace App\Http\Livewire\Andamios;
 
 
 use App\Models\Andamio;
+use App\Models\DetalleAndamio;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -11,7 +12,7 @@ class Andamios extends Component
 {
     use WithPagination;
 
-    public $andamio_id;
+    public $andamio_id, $detalles=[];
     public $perPage = 10;
     public $search = '';
     public $orderBy = 'id';
@@ -29,6 +30,10 @@ class Andamios extends Component
     public function editEstado($id)
     {
         $this->andamio_id = $id;
+    }
+
+    public function ver($id){
+        $this->detalles=DetalleAndamio::getAndamio($id);
     }
 
     public function updateEstado(){

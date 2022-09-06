@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire\Cotizaciones;
 
+use App\Http\Livewire\Andamios\Andamios;
 use App\Models\Andamio;
 use App\Models\Categoria;
 use App\Models\Consecutivo;
@@ -15,15 +16,17 @@ class DetallesCotizacion extends Component
 {
     public $cotizacion_id;
     public  $andamio_id, $cantidad, $peso, $peso_total, $codigo, $codigo_andamio,  $nombre,
-    $descripcion, $categorias, $categoria_id, $detalles, $isStore=false, $listado_andamios, $dias, $valor;
-    public $porcentaje=19, $canPiezas=0, $pesototal=0, $iva, $subtotal, $total;
-    public $totales_cot, $tipo_andamio, $cantidad_andamio;
+    $descripcion, $categorias, $categoria_id='', $detalles, $isStore=false, $listado_andamios, $dias, $valor;
+    public $precio, $porcentaje=19, $canPiezas=0, $pesototal=0, $iva, $subtotal, $total;
+    public $totales_cot, $tipo_andamio, $cantidad_andamio, $andamios=[];
 
     public $ndias, $totalkgdia=0;
     public $cantidad2, $valor2, $dias2, $total2, $dias3=1;
 
+
+
     public $perPage = 10;
-    public $search = '';
+    public $search = '', $search2='';
     public $orderBy = 'id';
     public $orderAsc = true;
 
@@ -47,7 +50,12 @@ class DetallesCotizacion extends Component
 
     {
 
-        if(!empty($this->cotizacion_id) && $this->categoria_id<=2){
+        $list_andamios=[];
+        if(!empty($this->categoria_id) && $this->categoria_id<=2){
+            $list_andamios=Andamio::searchActivos($this->search2, $this->categoria_id)
+            ->orderBy($this->orderBy, $this->orderAsc ? 'asc' : 'desc')
+            ->simplePaginate($this->perPage);;
+            //dd($list_andamios);
             $this->listado_andamios=DetalleCotizacion::getCotizacion($this->cotizacion_id, 1, $this->categoria_id);
             $totales=DetalleCotizacion::totales($this->cotizacion_id, $this->categoria_id);
             $this->canPiezas=$totales[0]->piezas;
@@ -86,8 +94,12 @@ class DetallesCotizacion extends Component
         $piezas=Pieza::search($this->search, $this->categoria_id, $this->tipo_andamio)
                 ->orderBy($this->orderBy, $this->orderAsc ? 'asc' : 'desc')
                 ->simplePaginate($this->perPage);
+
+
+        //dd($andamios);
         $this->totales_cot=DetalleCotizacion::totalCotizacion($this->cotizacion_id);
-        return view('livewire.cotizaciones.detalles-cotizacion', compact('piezas'));
+
+        return view('livewire.cotizaciones.detalles-cotizacion', compact('piezas', 'list_andamios'));
     }
     public function store(){
         $validated = $this->validate([
@@ -104,6 +116,7 @@ class DetallesCotizacion extends Component
                 [
                     'nombre' => ($this->nombre),
                     'codigo' =>  ($this->codigo),
+                    'categoria_id' =>  ($this->categoria_id),
                     'descripcion' =>  ($this->tipo_andamio),
                     'dias' =>  ($this->ndias),
                     'cantidad' =>  ($this->cantidad_andamio),
@@ -111,6 +124,7 @@ class DetallesCotizacion extends Component
                 $this->isStore=true;
                 $this->andamio_id=$obj->id;
         // Mostrar la modal de piezas
+        $this->dispatchBrowserEvent('abrirModal');
     }
 
     public function add($id){
@@ -172,7 +186,7 @@ class DetallesCotizacion extends Component
         $piezas=0;
         $totalpeso=0;
         foreach ($this->detalles as $item) {
-            $piezas+=1;
+            $piezas+=$item->cantidad;
             $totalpeso+=($item->peso*$item->cantidad);
         }
         $and=Andamio::find($this->andamio_id);
@@ -295,6 +309,51 @@ class DetallesCotizacion extends Component
             $this->detalles=DetalleCotizacion::getCotizacion($this->cotizacion_id, 1, $this->categoria_id);
         }
     }
+
+    public function addAndamio($id, $peso){
+        $validated = $this->validate([
+            'dias' => 'required',
+            'cantidad' => 'required',
+            'precio' => 'required',
+        ]);
+        if($this->dias <= 0){
+            return session()->flash('advertencia', 'N° DIAS NO VALIDO');
+        }
+        if($this->cantidad <= 0){
+            return session()->flash('advertencia', 'CANTIDAD NO VALIDA');
+        }
+        if($this->precio <= 0){
+            return session()->flash('advertencia', 'PRECIO NO VALIDO');
+        }
+        $subt=($peso * $this->cantidad * $this->precio);
+        $iva=$subt * ($this->porcentaje/100);
+        $tot=$subt + $iva ;
+        $obj=DetalleCotizacion::create(
+            [
+                'categoria_id' =>  ($this->categoria_id),
+                'cotizacion_id' => ($this->cotizacion_id),
+                'andamio_id' => ($id),
+                'cantidad' =>  ($this->cantidad),
+                'peso' =>  ($peso),
+                'dias'=>$this->dias,
+                'peso_total' =>  ($peso * $this->cantidad),
+                'precio' =>  ($this->precio),
+                'iva' =>  ($iva),
+                'porcentaje' =>  ($this->porcentaje),
+                'subtotal' =>  $subt,
+                'total' =>  $tot,
+                'estado'=>1
+            ]);
+        $this->dias='';
+        $this->precio='';
+        $this->cantidad='';
+        $this->dispatchBrowserEvent('cerarModal');
+        session()->flash('message', 'ANDAMIO AGREGADO A COTIZACION EXITOSAMENTE');
+
+
+
+    }
+
 
     public function agregarCot(){
         $validated = $this->validate([

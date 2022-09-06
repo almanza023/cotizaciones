@@ -60,28 +60,31 @@
                     <tr>
                         @if (!empty($categoria_id) && $categoria_id>2)
                         <td>
-                            <button type="button" data-toggle="modal" data-target="#modalCreate" class="btn btn-success">Agregar Piezas</button>
+                            <button type="button" data-toggle="modal" data-target="#modalPiezas" class="btn btn-success">Agregar</button>
                         </td>
                         @endif
                         @if (!empty($categoria_id) && $isStore && $categoria_id<=2)
                         <td>
-                            <a href="{{ route('cotizacion.detalles', $cotizacion_id) }}" class="btn btn-warning">Nuevo</a>
+                            <a href="{{ route('cotizacion.detalles', $cotizacion_id) }}" class="btn btn-warning">Nuevo Andamio</a>
                          </td>
                         <td>
-                            <button type="button" data-toggle="modal" data-target="#modalCreate" class="btn btn-success">Agregar Piezas</button>
+                            <button type="button" data-toggle="modal" data-target="#modalPiezas" class="btn btn-success">Agregar Piezas</button>
                         </td>
 
                         @else
-                        @if ($categoria_id<=2)
+                        @if ($categoria_id<=2 && !empty($categoria_id))
                             <td>
-                            <a href="{{ route('cotizacion.detalles', $cotizacion_id) }}" class="btn btn-warning">Nuevo</a>
+                            <a href="{{ route('cotizacion.detalles', $cotizacion_id) }}" class="btn btn-warning">Nuevo Andamios</a>
 
                          </td>
                         @endif
                          @if (!empty($categoria_id) && ($categoria_id<=2))
                          <td>
                             <button type="button" wire:click="store()" class="btn btn-info">Agregar Piezas</button>
-                           </td>
+                         </td>
+                         <td>
+                            <button type="button" data-toggle="modal" data-target="#modalCreados"  class="btn btn-info">Andamios Creados</button>
+                         </td>
                          @endif
 
                         @endif
@@ -97,8 +100,10 @@
       <!-- /.box-body -->
     </div>
     <br>
+    @include('livewire.cotizaciones.modal-creados')
     @include('livewire.cotizaciones.buscar-piezas')
     @include('livewire.cotizaciones.confirmar')
+    @if($categoria_id!='')
     @if(!empty($listado_andamios) && $categoria_id<=2)
     <div class="card">
         <div class="card-header with-border">
@@ -168,6 +173,7 @@
       </div>
 
     @endif
+    @endif
     <br>
       @if(!empty($detalles))
       <div class="card" >
@@ -183,7 +189,7 @@
             <div class="table-responsive">
               <table class="table table-hover">
                <tr class="bg-warning">
-                   <th colspan="8"><center>DETALLES PIEZAS AGREGADAS</center></th>
+                   <th colspan="8"><center>DETALLES ELEMENTOS AGREGADOS</center></th>
                </tr>
                <tr>
                 <th>#</th>
@@ -213,7 +219,7 @@
               @endif
               @if (!empty($item->pieza->nombre))
               @php
-                  $totalp+=1;
+                  $totalp+=$item->cantidad;
                   $totalkg+=$item->peso_total;
                 @endphp
 
@@ -343,9 +349,18 @@
         </div>
       </div>
       @endif
+
+
       <br>
         <!-- /.box -->
-
+        <script >
+            window.addEventListener('abrirModal', event => {
+                $('#modalPiezas').modal('show');
+            })
+            window.addEventListener('cerrarModal', event => {
+                $('#modalCreados').modal('hide');
+            })
+        </script>
 
     <!-- /.box -->
 </div>

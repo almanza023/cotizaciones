@@ -7,7 +7,7 @@
     @endif
     @include('livewire.andamios.tabla')
 
-    @include('livewire.andamios.create')
+    @include('livewire.andamios.ver')
     @include('livewire.andamios.bloquear')
 </div>
 

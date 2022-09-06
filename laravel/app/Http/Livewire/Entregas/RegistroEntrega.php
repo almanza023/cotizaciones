@@ -73,8 +73,8 @@ class RegistroEntrega extends Component
         {
             foreach ($this->listadoPiezas as $item)
             {
-                $dispo = Pieza::find($item->id);
-                array_push($this->cantidad1, ["id" => $item->id, "can" => $item->total, "disponible" => $dispo->cantidad]);
+                $dispo = Pieza::find($item->pieza_id);
+                array_push($this->cantidad1, ["id" => $item->pieza_id, "can" => $item->total, "disponible" => $dispo->cantidad]);
             }
         }
 
@@ -90,7 +90,8 @@ class RegistroEntrega extends Component
         {
             foreach ($this->listadoMaterial as $item)
             {
-                array_push($this->cantidad2, ["id" => $item->pieza_id, "can" => $item->cantidad, ]);
+                $dispo = Pieza::find($item->pieza_id);
+                array_push($this->cantidad2, ["id" => $item->pieza_id, "can" => $item->cantidad, "disponible" => $dispo->cantidad]);
             }
         }
 
@@ -98,9 +99,11 @@ class RegistroEntrega extends Component
         {
             foreach ($this->listadoProductos as $item)
             {
-                array_push($this->cantidad3, ["id" => $item->pieza_id, "can" => $item->cantidad, ]);
+                $dispo = Pieza::find($item->pieza_id);
+                array_push($this->cantidad3, ["id" => $item->pieza_id, "can" => $item->cantidad, "disponible" => $dispo->cantidad]);
             }
         }
+
 
         return view('livewire.entregas.registro-entrega');
     }
@@ -116,6 +119,39 @@ class RegistroEntrega extends Component
         {
             return session()
                 ->flash('advertencia', 'LA FECHA DE ENTREGA DEBE SER MAYOR A LA FECHA DE APROBACIÓN');
+        }
+
+        if(count($this->cantidad1)>0){
+            foreach ($this->cantidad1 as $item)
+            {
+                $dispo = Pieza::find($item['id']);
+                if($item['can'] > $dispo->cantidad){
+                    return session()
+                    ->flash('advertencia', 'LA CANTIDAD INGRESADA EN '.$dispo->nombre.' SUPERA AL STOCK');
+                }
+            }
+        }
+
+        if(count($this->cantidad2)>0){
+            foreach ($this->cantidad2 as $item)
+            {
+                $dispo = Pieza::find($item['id']);
+                if($item['can'] > $dispo->cantidad){
+                    return session()
+                    ->flash('advertencia', 'LA CANTIDAD INGRESADA EN '.$dispo->nombre.' SUPERA AL STOCK');
+                }
+            }
+        }
+
+        if(count($this->cantidad3)>0){
+            foreach ($this->cantidad3 as $item)
+            {
+                $dispo = Pieza::find($item['id']);
+                if($item['can'] > $dispo->cantidad){
+                    return session()
+                    ->flash('advertencia', 'LA CANTIDAD INGRESADA EN '.$dispo->nombre.' SUPERA AL STOCK');
+                }
+            }
         }
 
         DB::beginTransaction();

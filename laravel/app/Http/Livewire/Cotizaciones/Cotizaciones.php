@@ -42,6 +42,7 @@ class Cotizaciones extends Component
         $this->nombre_cliente='';
         $this->documento_cliente='';
        }
+       $this->dispatchBrowserEvent('cerrarModal');
     }
 
     public function store(){

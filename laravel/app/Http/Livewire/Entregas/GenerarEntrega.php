@@ -82,8 +82,11 @@ class GenerarEntrega extends Component
             'cantidad' => 'required',
         ]);
         $pieza=Pieza::find($id);
+        if($this->cantidad > $pieza->cantidad){
+            return session()
+            ->flash('advertencia', 'LA CANTIDAD INGRESADA EN '.$pieza->nombre.' SUPERA AL STOCK');
+        }
         if(!empty($pieza)){
-
             $det=DetalleEntrega::updateOrCreate(
                 [
                     'entrega_id' =>  ($this->entrega_id),
