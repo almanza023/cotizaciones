@@ -26,11 +26,9 @@ class VerCobros extends Component
     public function ver($id, $categoria){
         $this->sel_categoria=$categoria;
         $this->detalles=Subcobro::getDetalles($id);
-
     }
 
     public function consultar(){
-
         $this->data=Cobro::getProyecto($this->proyecto_id, $this->categoria_id);
     }
 

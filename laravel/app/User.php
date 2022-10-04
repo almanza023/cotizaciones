@@ -17,7 +17,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'documento', 'rol', 'email', 'password',
+        'name', 'documento', 'telefono', 'rol', 'email', 'password',
         'password_reset', 'verify_password'
     ];
 
@@ -38,6 +38,16 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public static function search($search)
+    {
+        return empty($search) ? static::query()
+            : static::query()->where('id', 'like', '%'.$search.'%')
+                ->orWhere('name', 'like', '%'.$search.'%')
+                ->orWhere('documento', 'like', '%'.$search.'%')
+                ->orWhere('email', 'like', '%'.$search.'%');
+
+    }
 
     public static function validarDuplicado($codigo){
         return User::where('documento', $codigo)->where('estado',1)->get();

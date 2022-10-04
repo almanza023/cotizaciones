@@ -48,6 +48,13 @@
 
                       </td>
                     </tr>
+                    <tr>
+                        <td>
+                            <a href="{{ route('soportes', $this->proyecto_id) }}" class="btn btn-primary btn-sm">Soportes</a>
+                            <a href="{{ route('liquidaciones.registro', $this->proyecto_id) }}" class="btn btn-success btn-sm">Cerrar Proyecto</a>
+
+                        </td>
+                    </tr>
                  </table>
          </div>
       </div>

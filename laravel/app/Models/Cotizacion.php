@@ -8,15 +8,21 @@ class Cotizacion extends Model
 {
     protected $table = 'cotizaciones';
     protected $fillable = ['id', 'cliente_id', 'usuario_id', 'numero', 'proyecto', 'tipo', 'contacto', 'entrega',
-    'telefono', 'correo', 'forma_pago', 'fecha', 'vencimiento', 'fecha_aprobacion', 'subtotal', 'subtotal2', 'iva',
+    'telefono', 'correo', 'forma_pago', 'fecha', 'vencimiento', 'fecha_aprobacion', 'fecha_rechazo', 'subtotal', 'subtotal2', 'iva',
     'valor_kg', 'total', 'copiado', 'dias', 'porcentaje', 'peso', 'observaciones', 'estado'];
 
-    public static function search($search)
+    public static function search($search, $cliente, $estado)
     {
-        return empty($search) ? static::query()
+        if(empty($cliente)){
+            return empty($search) ? static::query()->where('estado', 'like', '%'.$estado.'%')
             : static::query()->where('id', 'like', '%'.$search.'%')
-                ->orWhere('nombre', 'like', '%'.$search.'%')
-                ->orWhere('descripcion', 'like', '%'.$search.'%');
+                ->orWhere('contacto', 'like', '%'.$search.'%')
+                ->orWhere('proyecto', 'like', '%'.$search.'%')
+                ->orWhere('estado', 'like', '%'.$estado.'%');
+        }else{
+            return static::query()->where('cliente_id', $cliente)->where('estado', 'like', '%'.$estado.'%');
+        }
+
 
     }
 

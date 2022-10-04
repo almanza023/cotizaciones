@@ -2,7 +2,7 @@
 
 namespace App\Http\Livewire\ListadoCotizaciones;
 
-
+use App\Models\Cliente;
 use App\Models\Cotizacion;
 use App\Models\DetalleCotizacion;
 use App\Models\Reportes\ReporteCotizacion;
@@ -14,20 +14,34 @@ class ListadoCotizaciones extends Component
 {
     use WithPagination;
 
-    public $cotizacion_id;
+    public $cotizacion_id, $cliente_id;
     public $perPage = 10;
-    public $search = '';
+    public $search = '', $search2 = '';
     public $orderBy = 'id';
+    public $estado = '';
     public $orderAsc = true;
 
     private $model=Cotizacion::class;
     public function render()
     {
-        $data=$this->model::search($this->search)
+        $clientes=Cliente::search($this->search2)
+                ->orderBy($this->orderBy, $this->orderAsc ? 'asc' : 'desc')
+                ->simplePaginate($this->perPage);
+
+        $data=$this->model::search($this->search, $this->cliente_id, $this->estado)
         ->orderBy($this->orderBy, $this->orderAsc ? 'asc' : 'desc')
         ->simplePaginate($this->perPage);
-        return view('livewire.listado-cotizaciones.listado-cotizaciones', compact('data'));
+        return view('livewire.listado-cotizaciones.listado-cotizaciones', compact('data', 'clientes'));
     }
+
+    public function selectCliente($id){
+        $this->cliente_id=($id);
+        $this->dispatchBrowserEvent('cerrarModal');
+     }
+     public function mostrarTodos(){
+        $this->cliente_id='';
+
+     }
 
     public function editEstado($id)
     {
@@ -35,17 +49,9 @@ class ListadoCotizaciones extends Component
     }
 
     public function updateEstado(){
-        $obj = $this->model::find($this->cotizacion_id);
-
-        if($obj->estado==1){
-            $obj->estado=0;
-            $obj->save();
-        }else{
-            $obj->estado=1;
-            $obj->save();
-        }
-        session()->flash('message', 'ESTADO ACTUALIZADO EXITOSAMENTE');
-        $this->emit('closeModalEstado');
+        $obj = $this->model::find($this->cotizacion_id)->delete();
+        session()->flash('message', 'REGISTRO ANULADO  EXITOSAMENTE');
+        $this->emit('closeModal');
 
 
     }
@@ -75,7 +81,7 @@ class ListadoCotizaciones extends Component
                 $nuevaCotizacion->iva=$cotizacion->iva;
                 $nuevaCotizacion->porcentaje=$cotizacion->porcentaje;
                 $nuevaCotizacion->total=$cotizacion->total;
-                $nuevaCotizacion->peso=$cotizacion->total;
+                $nuevaCotizacion->peso=$cotizacion->peso;
                 $nuevaCotizacion->estado=1;
                 $nuevaCotizacion->copiado='SI';
                 $nuevaCotizacion->save();

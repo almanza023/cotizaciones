@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Categoria;
 use App\Models\Huella;
 use App\Models\ProfesionalUnidad;
 use App\Models\Unidad;
@@ -94,6 +95,11 @@ class ViewController extends Controller
         return view('entregas.ver', compact('id'));
     }
 
+    public function usuarios()
+    {
+        return view('usuarios.index');
+    }
+
 
 
     public function devoluciones()
@@ -162,6 +168,37 @@ class ViewController extends Controller
     public function cobrosEncofrados($id)
     {
         return view('cobros_encofrados.registro', compact('id'));
+    }
+
+    public function soportes($id)
+    {
+        return view('soportes.index', compact('id'));
+    }
+
+    public function liquidaciones()
+    {
+        return view('liquidaciones.index');
+    }
+
+    public function registroLiquidacion($id)
+    {
+        return view('liquidaciones.registro', compact('id'));
+    }
+
+    public function verLiquidacion($id)
+    {
+        return view('liquidaciones.ver', compact('id'));
+    }
+
+    public function empresa()
+    {
+        return view('empresa.index');
+    }
+
+    public function reportes()
+    {
+        $categorias=Categoria::getActive();
+        return view('reportes.index', compact('categorias'));
     }
 
 

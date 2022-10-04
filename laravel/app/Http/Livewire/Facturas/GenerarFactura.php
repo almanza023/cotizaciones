@@ -4,6 +4,7 @@ namespace App\Http\Livewire\Facturas;
 
 use App\Models\CategoriaProyecto;
 use App\Models\Cobro;
+use App\Models\Empresa;
 use App\Models\Factura;
 use App\Models\Facturacion;
 use App\Models\Proyecto;
@@ -14,8 +15,8 @@ use Livewire\Component;
 
 class GenerarFactura extends Component
 {
-    public $proyecto_id, $categoria_id, $usuario_id, $data, $valor,
-    $proyecto, $fecha1, $fecha2, $pesototal, $iva, $subtotal, $total, $porcentaje;
+    public $proyecto_id, $categoria_id, $usuario_id, $data, $valor, $detalles=[], $sel_categoria,
+    $proyecto, $fecha1, $fecha2, $pesototal, $iva, $subtotal, $total, $porcentaje, $total_subtotal, $total_iva, $total_total;
 
 
     public function mount($id)
@@ -35,7 +36,7 @@ class GenerarFactura extends Component
     }
     public function render()
     {
-        $this->porcentaje=(0.19);
+        $this->porcentaje=Empresa::getPorcentaje()/100;
         $this->usuario_id=auth()->user()->id;
         $this->categorias=CategoriaProyecto::getCategoriasByProyecto($this->proyecto_id);
 
@@ -63,7 +64,15 @@ class GenerarFactura extends Component
 
         foreach ($this->data as $item) {
             $this->pesototal=$this->pesototal + $item->pesodiatotal;
+            $this->total_subtotal +=$item->subtotal;
+            $this->total_iva +=$item->iva;
+            $this->total_total +=$item->total;
         }
+
+    }
+    public function ver($id, $categoria){
+        $this->sel_categoria=$categoria;
+        $this->detalles=Subcobro::getDetalles($id);
     }
 
     public function guardar(){
@@ -73,22 +82,49 @@ class GenerarFactura extends Component
             'fecha2' => 'required|date',
             'total'=>    'required'
         ]);
+        $tot=0;
+        $sub=0;
+        $iva=0;
+        if(empty($this->total)){
+            $tot=$this->total_total;
+        }else{
+            $tot=$this->total;
+        }
 
+        if(empty($this->iva)){
+            $tot=$this->total_iva;
+        }else{
+            $tot=$this->iva;
+        }
+
+        if(empty($this->subtotal)){
+            $tot=$this->total_subtotal;
+        }else{
+            $tot=$this->subtotal;
+        }
+
+       if($tot>0 ){
         DB::beginTransaction();
-        $numero=1;
+        $numero= Factura::select("id")->where('proyecto_id', $this->proyecto_id)->latest()->first();
+        if(empty($numero)){
+            $numero=1;
+        }else{
+            $numero=$numero->id+1;
+        }
         $fact=Factura::create([
             'proyecto_id'=>$this->proyecto_id,
+            'categoria_id'=>$this->categoria_id,
             'usuario_id'=>$this->usuario_id,
             'numero'=>$numero,
             'fecha_gen'=>Carbon::now()->format('Y-m-d'),
             'fecha1'=>$this->fecha1,
             'fecha2'=>$this->fecha2,
-            'subtotal'=>$this->subtotal,
+            'subtotal'=>$sub,
             'valor_kg'=>$this->valor,
             'porcentaje'=>$this->porcentaje,
             'peso'=>$this->pesototal,
-            'iva'=>$this->iva,
-            'total'=>$this->total,
+            'iva'=>$iva,
+            'total'=>$tot,
         ]);
 
         foreach ($this->data as $item) {
@@ -106,5 +142,9 @@ class GenerarFactura extends Component
             DB::rollback();
             session()->flash('advertencia', $e->getMessage());
         }
+       }else{
+        session()->flash('advertencia', 'NO EXISTEN COBROS PARA REALIZAR FACTURA');
+
+       }
     }
 }

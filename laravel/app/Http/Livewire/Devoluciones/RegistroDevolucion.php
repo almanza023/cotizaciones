@@ -8,10 +8,12 @@ use App\Models\Consecutivo;
 use App\Models\ConsecutivoProyecto;
 use App\Models\DetalleEntrega;
 use App\Models\Devolucion;
+use App\Models\Empresa;
 use App\Models\Entrega;
 use App\Models\EntregaProyecto;
 use App\Models\Pieza;
 use App\Models\Proyecto;
+use App\Models\Reposicion;
 use App\Models\Subcobro;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -21,8 +23,8 @@ class RegistroDevolucion extends Component
 {
 
     public $listadoPiezas=[], $proyecto, $usuario, $categoria_id;
-    public $proyecto_id, $fecha, $cotizacion_id;
-    public $cantidad1=[], $fecha_corte, $dias, $total;
+    public $proyecto_id, $fecha, $cotizacion_id, $porcentaje;
+    public $cantidad1=[], $reposiciones=[], $valores=[],  $fecha_corte, $dias, $total, $reposicion='NO';
     public function mount($id)
     {
         $this->proyecto_id = $id;
@@ -44,6 +46,7 @@ class RegistroDevolucion extends Component
     public function render()
     {
         $this->usuario=auth()->user()->id;
+        $this->porcentaje=Empresa::getPorcentaje();
         $this->total=0;
         $this->categorias=CategoriaProyecto::getCategoriasByProyecto($this->proyecto_id);
         $this->listadoPiezas=EntregaProyecto::getProyecto($this->proyecto_id, $this->categoria_id);
@@ -66,7 +69,8 @@ class RegistroDevolucion extends Component
                 "peso" => $item->pieza->peso,
                 "entregadas" => $item->entregadas,
                 "can" =>"",
-                "restante"=>$item->restante
+                "restante"=>$item->restante,
+                "precio"=>$item->pieza->precio,
             ]);
         }
        }
@@ -78,11 +82,30 @@ class RegistroDevolucion extends Component
         $validated = $this->validate([
             'fecha' => 'required|date',
             'categoria_id' => 'required',
-
         ]);
+
         //Validar que la fecha de la devolucion sea mayor a la fecha del corte
         if($this->fecha < $this->fecha_corte){
             return session()->flash('advertencia', 'FECHA DEVOLUCION NO ES VALIDA');
+        }
+
+        $i=0;
+        $array_reposicion=[];
+        foreach ($this->reposiciones as $item) {
+            if($item['can']>$this->cantidad1[$i]['can']){
+                return session()->flash('advertencia', 'CANTIDAD NO PERMITIDA EN REPOSICION');
+            }
+            if($this->valores[$i]['can'] < 0){
+                return session()->flash('advertencia', 'VALOR NO PERMITIDO');
+            }
+            $temp_array=[
+                'pieza_id'=>$this->cantidad1[$i]['pieza_id'],
+                'can'=>$item['can'],
+                'valor'=>$this->valores[$i]['can'],
+                'subtotal'=>$this->valores[$i]['can'] * $item['can']
+            ];
+            array_push($array_reposicion, $temp_array);
+            $i++;
         }
 
            //dd($this->cantidad1);
@@ -130,6 +153,9 @@ class RegistroDevolucion extends Component
              $pesototal=0;
              $cantidadtotal=0;
              $pesodiatotal=0;
+             $acumsubtotal=0;
+             $acumiva=0;
+             $acumtotal=0;
 
                 foreach ($this->cantidad1 as $item) {
                     if(!empty($item["can"])){
@@ -189,6 +215,13 @@ class RegistroDevolucion extends Component
                      $pesototal=$pesototal+$item['peso'];
                      $cantidadtotal=$cantidadtotal+$item['restante'];
                      $pesodiatotal=$pesodiatotal+$pesodia;
+                     $subtotal=$this->dias * $item['precio'] * $item["restante"];
+                     $iva=$subtotal * ($this->porcentaje/100);
+                     $total=$subtotal + $iva;
+                     $acumsubtotal+=$subtotal;
+                     $acumiva+=$iva;
+                     $acumtotal+=$total;
+
 
                     $subcobro=Subcobro::create([
                         'pieza_id'=>$item['pieza_id'],
@@ -201,7 +234,11 @@ class RegistroDevolucion extends Component
                         'dias'=>$this->dias,
                         'fecha1'=>$this->fecha_corte,
                         'fecha2'=>$this->fecha,
-                        'pesodia'=>$pesodia
+                        'pesodia'=>$pesodia,
+                        'valor'=>$item['precio'],
+                        'subtotal'=>$subtotal,
+                        'iva'=>$iva,
+                        'total'=>$total,
                     ]);
 
                     //Generar Nueva Entrega General
@@ -217,12 +254,49 @@ class RegistroDevolucion extends Component
                             'fecha'=>$nuevaFecha
                         ]);
                 }
+                //Cobrar Reposiciones
+                $totalReposicion=0;
+                if($this->reposicion=='SI'){
+                    $i=0;
+                    foreach ($array_reposicion as $item) {
+                        $subcobro=Subcobro::create([
+                            'pieza_id'=>$item['pieza_id'],
+                            'proyecto_id'=>$this->proyecto_id,
+                            'categoria_id'=>$this->categoria_id,
+                            'cobro_id'=>$cobro->id,
+                            'numero'=>$conseSubcobros,
+                            'cantidad'=>$item["can"],
+                            'valor'=>$item["valor"],
+                            'reposicion'=>1,
+                            'dias'=>$this->dias,
+                            'fecha1'=>$this->fecha_corte,
+                            'fecha2'=>$this->fecha,
+                            'subtotal'=>$item["subtotal"]
+                        ]);
+                        //Registrar las reposciones que se realizan
+                        Reposicion::create([
+                            'pieza_id'=>$item['pieza_id'],
+                            'proyecto_id'=>$this->proyecto_id,
+                            'categoria_id'=>$this->categoria_id,
+                            'cantidad'=>$item["can"],
+                            'fecha'=>$this->fecha,
+                            'valor'=>$item["valor"],
+                            'subtotal'=>$item["subtotal"],
+                        ]);
+                        $totalReposicion=$totalReposicion + $item["subtotal"];
+                    }
+                }
                 //Actualizar subcobro
                 $cobro->piezas=$piezas;
                 $cobro->pesototal=$pesototal;
                 $cobro->cantidadtotal=$cantidadtotal;
                 $cobro->pesodiatotal=$pesodiatotal;
+                $cobro->subtotal_reposicion=$totalReposicion;
+                $cobro->subtotal=$acumsubtotal;
+                $cobro->iva=$acumiva;
+                $cobro->total=$acumtotal;
                 $cobro->save();
+
                 $const=ConsecutivoProyecto::getProyectoId($this->proyecto_id);
                 $const->subcobros=$conseSubcobros;
                 $const->save();

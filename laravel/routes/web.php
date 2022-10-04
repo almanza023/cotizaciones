@@ -34,6 +34,7 @@ Route::group(['middleware' => ['auth']], function () {
         return view('home');
     })->name('home');
     Route::get('inicio','ViewController@index')->name('home');
+    Route::get('empresa','ViewController@empresa')->name('empresa');
     Route::get('cotizaciones','ViewController@cotizaciones')->name('cotizaciones');
     Route::get('cotizaciones/ver','ViewController@listadoCotizaciones')->name('cotizaciones.listado');
     Route::get('categorias','ViewController@categorias')->name('categorias');
@@ -41,9 +42,12 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('piezas','ViewController@piezas')->name('piezas');
     Route::get('andamios','ViewController@andamios')->name('andamios');
     Route::get('proyectos','ViewController@proyectos')->name('proyectos');
+    Route::get('usuarios','ViewController@usuarios')->name('usuarios');
+    Route::get('reportes','ViewController@reportes')->name('reportes');
     Route::get('entregas/{id}','ViewController@entregas')->name('entregas');
     Route::get('andamios/crear','ViewController@createAndamios')->name('andamios.create');
     Route::get('importar-inventario', 'ImportarInventarioController@index')->name('importar.index');
+    Route::get('soportes/{id}', 'ViewController@soportes')->name('soportes');
     Route::get('detalles-cotizacion/{id}', 'ViewController@detallesCotizaciones')->name('cotizacion.detalles');
     Route::get('registro-entregas/{id}', 'ViewController@registroEntrega')->name('entregas.registro');
     Route::get('ver-cotizacion/{id}', 'ViewController@verCotizacion')->name('cotizacion.ver');
@@ -54,6 +58,11 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::get('registro-devolucion/{id}', 'ViewController@registroDevolucion')->name('devoluciones.registro');
     Route::get('ver-devolucion/{id}', 'ViewController@verDevolucion')->name('devoluciones.ver');
+
+    //Liquidaciones
+    Route::get('registro-liquidacion/{id}', 'ViewController@registroLiquidacion')->name('liquidaciones.registro');
+    Route::get('ver-liquidacion/{id}', 'ViewController@verLiquidacion')->name('liquidaciones.ver');
+
     Route::get('generar-entrega/{id}', 'ViewController@generarEntrega')->name('entregas.generar');
 
     Route::get('generar-entrega-encofrado/{id}', 'ViewController@generarEntregaEncofrado')->name('entregas-encofrado.generar');

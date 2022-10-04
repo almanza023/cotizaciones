@@ -7,5 +7,6 @@
     @endif
     @include('livewire.listado-cotizaciones.tabla')
     @include('livewire.listado-cotizaciones.bloquear')
+    @include('livewire.listado-cotizaciones.buscar-cliente')
 </div>
 

@@ -48,6 +48,9 @@
                                     <td>
                                         <button type="button" wire:click="addAndamio({{ $item->id }}, {{ $item->peso }})" class="btn btn-success">+</button>
                                     </td>
+                                    <td>
+                                        <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#modalDetPiezas" wire:click="verPiezas({{ $item->id }})">Ver Piezas</button>
+                                    </td>
 
                                 </tr>
                             @endforeach

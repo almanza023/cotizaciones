@@ -73,8 +73,9 @@ class RegistroEntrega extends Component
         {
             foreach ($this->listadoPiezas as $item)
             {
-                $dispo = Pieza::find($item->pieza_id);
-                array_push($this->cantidad1, ["id" => $item->pieza_id, "can" => $item->total, "disponible" => $dispo->cantidad]);
+
+                $dispo = Pieza::find($item->id);
+                array_push($this->cantidad1, ["id" => $item->id, "can" => $item->total, "disponible" => $dispo->cantidad]);
             }
         }
 

@@ -20,12 +20,14 @@
                               <th>Peso (Kg)</th>
                               <th>Peso Día</th>
                               @else
+                              <th>Precio</th>
                               <th>Subtotal</th>
                               <th>Iva</th>
                               <th>Total</th>
                               @endif
                                 <th>Fecha Inicio</th>
                                 <th>Fecha Fin</th>
+                                <th>Reposicion de Material</th>
                             </tr>
                             @foreach ($detalles as $item)
                                 <tr>
@@ -36,12 +38,23 @@
                                     <td>{{ $item->peso }}</td>
                                     <td>{{ $item->pesodia}}</td>
                                   @else
+                                  @if($item->reposicion==0)
+                                       <td>$ {{ number_format($item->pieza->precio) }}</td>
+                                       @else
+                                       <td>$ {{ number_format($item->valor) }}</td>
+                                       @endif
                                        <td>$ {{ number_format($item->subtotal) }}</td>
                                        <td>$ {{ number_format($item->iva) }}</td>
                                        <td>$ {{ number_format($item->total) }}</td>
                                   @endif
                                     <td>{{ $item->fecha1 }}</td>
                                     <td>{{ $item->fecha2 }}</td>
+                                   @if($item->reposicion==1)
+                                   <td>SI</td>
+                                   @else
+                                   <td>NO</td>
+                                   @endif
+
                                 </tr>
                             @endforeach
                         </table>

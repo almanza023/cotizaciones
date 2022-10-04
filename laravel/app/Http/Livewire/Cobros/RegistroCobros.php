@@ -7,6 +7,7 @@ use App\Models\Cobro;
 use App\Models\Consecutivo;
 use App\Models\ConsecutivoProyecto;
 use App\Models\DetalleEntrega;
+use App\Models\Empresa;
 use App\Models\Entrega;
 use App\Models\EntregaProyecto;
 use App\Models\Pieza;
@@ -44,7 +45,7 @@ class RegistroCobros extends Component
         if(!empty($procat)){
             $this->fecha1=$procat->ultima_fecha;
         }
-        $this->porcentaje=19;
+        $this->porcentaje=Empresa::getPorcentaje();
         $this->categorias=CategoriaProyecto::getCategoriasByProyecto($this->proyecto_id);
         $this->usuario_id=auth()->user()->id;
         return view('livewire.cobros.registro-cobros');

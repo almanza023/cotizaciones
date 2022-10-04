@@ -1,5 +1,6 @@
 <div>
     @include('theme.alertas')
+    @include('livewire.proyectos.modal-detalles-cobros')
     <!-- Basic Forms -->
     <div class="card">
       <div class="card-header with-border">
@@ -61,10 +62,12 @@
             <div class="col">
                 @forelse ($data as $item)
                 <table class="table table-hover table-responsive">
+                    @if ($item->categoria_id <= 2)
                     <tr class="bg-warning">
-                        <th colspan="7">DETALLES DE COBRO N° {{ $loop->iteration }}</th>
+                        <th colspan="8">DETALLES DE COBRO N° {{ $loop->iteration }}</th>
                     </tr>
                     <tr>
+                        <th>#</th>
                         <th>FECHA 1</th>
                         <th>FECHA 2</th>
                         <th>CANTIDAD DE DÍAS</th>
@@ -73,15 +76,38 @@
                         <th>TOTAL</th>
                         <th>VER DETALLES</th>
                     </tr>
+                    @else
+                    <tr class="bg-warning">
+                        <th colspan="8">DETALLES DE COBRO N° {{ $loop->iteration }}</th>
+                    </tr>
+                    <tr>
+                        <th>#</th>
+                        <th>FECHA 1</th>
+                        <th>FECHA 2</th>
+                        <th>CANTIDAD DE DÍAS</th>
+                        <th>SUBTOTAL</th>
+                        <th>IVA</th>
+                        <th>TOTAL</th>
+                        <th>VER DETALLES</th>
+                    </tr>
+                    @endif
                 <tr>
+                    <td width="10">{{ $loop->iteration }}</td>
                     <td>{{ $item->fecha1 }}</td>
                     <td>{{ $item->fecha2 }}</td>
                     <td>{{ $item->dias }}</td>
-                    <td>{{ $item->cantidadtotal }}</td>
-                    <td>{{ $item->pesototal }}</td>
-                    <td>{{ $item->pesodiatotal }}</td>
+                   @if ($item->categoria_id <= 2)
+                   <td>{{ $item->cantidadtotal }}</td>
+                   <td>{{ $item->pesototal }}</td>
+                   <td>{{ $item->pesodiatotal }}</td>
+                   @else
+                   <td>$ {{ number_format($item->subtotal) }}</td>
+                   <td>$ {{ number_format($item->iva) }}</td>
+                   <td>$ {{ number_format($item->total) }}</td>
+
+                   @endif
                     <td>
-                        <button data-toggle="modal" data-target="#modalCreate" wire:click="ver({{ $item->id }})" class="btn btn-outline-info btn-sm"><i class="typcn typcn-edit"></i></button>
+                        <button data-toggle="modal" data-target="#modalCreate" wire:click="ver({{ $item->id }}, {{ $item->categoria_id }})" class="btn btn-outline-info btn-sm"><i class="typcn typcn-edit"></i></button>
                     </td>
 
                 </tr>
@@ -92,6 +118,7 @@
                 </table>
                 @endforelse
 
+                @if($categoria_id <=2 )
                 <table class="table table-hover">
                     <tr>
                         <th>VALOR KG</th>
@@ -123,17 +150,28 @@
                             {{ number_format($total,0) }}
                         </td>
                     </tr>
+                </table>
+                <table class="table">
                     <tr>
-                        <td colspan="2">
-                            <button type="button" wire:click="guardar"
-                             class="form-control btn btn-success btn-block">GUARDAR</button>
+                        <td>
+                            <button type="button" data-toggle="modal" data-target="#modalConfirmar"
+                            class="form-control btn btn-success btn-block">REGISTRAR FACTURA
+                            </button>
                         </td>
                     </tr>
-
-
-
-
                 </table>
+                @else
+                <table class="table">
+                    <tr>
+                        <td>
+                            <button type="button" data-toggle="modal" data-target="#modalConfirmar"
+                            class="form-control btn btn-success btn-block">REGISTRAR FACTURA
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+                @endif
+
 
             </div>
             <!-- /.col -->
@@ -145,4 +183,5 @@
       <br>
 
     @endif
+    @include('livewire.facturas.confirmar')
 </div>

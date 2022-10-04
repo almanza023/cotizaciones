@@ -77,8 +77,8 @@
                                          Opciones
                                         </button>
                                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                            <a class="dropdown-item" href="{{ route('entrega.ver', $item->id) }}">Ver</a>
-                                            <a class="dropdown-item" href="{{ route('entrega.reporte', $item->id) }}">Imprimir</a>
+                                            <a target="_blank" class="dropdown-item" href="{{ route('entrega.ver', $item->id) }}">Ver</a>
+                                            <a target="_blank" class="dropdown-item" href="{{ route('entrega.reporte', $item->id) }}">Imprimir</a>
 
 
                                         </div>

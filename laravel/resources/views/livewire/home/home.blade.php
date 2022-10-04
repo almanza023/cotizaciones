@@ -23,12 +23,15 @@
                                 <i class="mdi mdi-webcam"></i>
                             </div>
                         </div>
+
                         <div class="col-6 align-self-center text-center">
+                            <a href="{{ route('clientes') }}">
                             <div class="m-l-10">
                                 <h5 class="mt-0 round-inner">CLIENTES</h5>
-
                             </div>
+                        </a>
                         </div>
+
                         <div class="col-3 align-self-end align-self-center">
                             <h6 class="m-0 float-right text-center text-danger">
                         </div>
@@ -48,10 +51,11 @@
                             </div>
                         </div>
                         <div class="col-6 text-center align-self-center">
+                            <a href="{{ route('andamios') }}">
                             <div class="m-l-10 ">
                                 <h5 class="mt-0 round-inner">ANDAMIOS </h5>
-
                             </div>
+                            </>
                         </div>
                         <div class="col-3 align-self-end align-self-center">
                             <h6 class="m-0 float-right text-center text-danger"> </i>
@@ -72,10 +76,12 @@
                             </div>
                         </div>
                         <div class="col-6 align-self-center text-center">
+                            <a href="{{ route('cotizaciones') }}">
                             <div class="m-l-10 ">
                                 <h5 class="mt-0 round-inner">COTIZACIONES</h5>
 
                             </div>
+                            </a>
                         </div>
                         <div class="col-3 align-self-end align-self-center">
                             <h6 class="m-0 float-right text-center text-danger">

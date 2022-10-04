@@ -53,6 +53,13 @@
                     {{ $dias }}
                 </th>
             </tr>
+            <th colspan="2">REPOSICIÓN DE MATERIAL</th>
+                        <td colspan="2">
+                            <select class="form-control" wire:model="reposicion">
+                                <option value="NO">NO</option>
+                                <option value="SI">SI</option>
+                            </select>
+                    </td>
             <tr>
                 <th colspan="6">DETALLES DE ELEMENTOS ENTREGADOS</th>
             </tr>
@@ -62,6 +69,10 @@
                 <th>NOMBRE</th>
                 <th>CANTIDAD ENTREGADA</th>
                 <th >CANTIDAD A DEVOLVER</th>
+                @if($reposicion=='SI')
+                <th >CANTIDAD REPOSICION</th>
+                <th >VALOR</th>
+                @endif
             </tr>
             @forelse ($listadoPiezas as $key => $item)
             <tr>
@@ -73,6 +84,14 @@
                     <input class="form-control" wire:model="cantidad1.{{ $key }}.can"  />
                 </td>
 
+                @endif
+                @if ($reposicion=='SI' && $item->entregadas!=0)
+                <td >
+                    <input class="form-control" wire:model="reposiciones.{{ $key }}.can"  />
+                </td>
+                <td >
+                    <input class="form-control" wire:model="valores.{{ $key }}.can"  />
+                </td>
                 @endif
            </tr>
             @empty

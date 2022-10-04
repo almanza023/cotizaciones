@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\DB;
 class Subcobro extends Model
 {
     protected $table = 'subcobros';
-    protected $fillable = [ 'proyecto_id', 'pieza_id', 'categoria_id', 'cobro_id', 'valor', 'subtotal', 'iva', 'total',
+    protected $fillable = [ 'proyecto_id', 'pieza_id', 'categoria_id', 'cobro_id', 'valor',
+     'subtotal', 'iva', 'total', 'reposicion',
      'numero', 'fecha1', 'fecha2', 'cantidad', 'peso', 'pesodia', 'dias',  'estado'];
 
 

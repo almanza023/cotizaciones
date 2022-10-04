@@ -9,15 +9,16 @@ use App\Models\Consecutivo;
 use App\Models\Cotizacion;
 use App\Models\DetalleAndamio;
 use App\Models\DetalleCotizacion;
+use App\Models\Empresa;
 use App\Models\Pieza;
 use Livewire\Component;
 
 class DetallesCotizacion extends Component
 {
-    public $cotizacion_id;
+    public $cotizacion_id, $detPiezas=[];
     public  $andamio_id, $cantidad, $peso, $peso_total, $codigo, $codigo_andamio,  $nombre,
     $descripcion, $categorias, $categoria_id='', $detalles, $isStore=false, $listado_andamios, $dias, $valor;
-    public $precio, $porcentaje=19, $canPiezas=0, $pesototal=0, $iva, $subtotal, $total;
+    public $precio, $porcentaje, $canPiezas=0, $pesototal=0, $iva, $subtotal, $total;
     public $totales_cot, $tipo_andamio, $cantidad_andamio, $andamios=[];
 
     public $ndias, $totalkgdia=0;
@@ -25,7 +26,7 @@ class DetallesCotizacion extends Component
 
 
 
-    public $perPage = 10;
+    public $perPage = 100;
     public $search = '', $search2='';
     public $orderBy = 'id';
     public $orderAsc = true;
@@ -50,6 +51,7 @@ class DetallesCotizacion extends Component
 
     {
 
+        $this->porcentaje=Empresa::getPorcentaje();
         $list_andamios=[];
         if(!empty($this->categoria_id) && $this->categoria_id<=2){
             $list_andamios=Andamio::searchActivos($this->search2, $this->categoria_id)
@@ -257,6 +259,12 @@ class DetallesCotizacion extends Component
         session()->flash('advertencia', 'SE HA ELIMINADO LA PIEZA DEL ANDAMIO');
     }
 
+    public function verPiezas($id){
+        $this->detPiezas='';
+        $this->detPiezas=DetalleAndamio::getAndamio($id);
+
+    }
+
 
     public function quitar($id){
         $det=DetalleCotizacion::find($id);
@@ -349,10 +357,7 @@ class DetallesCotizacion extends Component
         $this->cantidad='';
         $this->dispatchBrowserEvent('cerarModal');
         session()->flash('message', 'ANDAMIO AGREGADO A COTIZACION EXITOSAMENTE');
-
-
-
-    }
+        }
 
 
     public function agregarCot(){

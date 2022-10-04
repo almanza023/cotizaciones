@@ -37,6 +37,13 @@ class ReporteController extends Controller
 
     }
 
+    public function rangoFacturas(Request $request)
+    {
+        $pdf = app('Fpdf');
+        //ReporteFactura::reporte($pdf, $id );
+
+    }
+
 
 
 

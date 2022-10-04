@@ -57,12 +57,7 @@
                     </tr>
                 @endforelse
             </table>
-
-
-
-
-            <a href="{{ route('proyectos.opciones', $proyecto_id) }}" class="btn btn-primary btn-block">Aceptar</a>
-
+            <a href="{{ route('entregas', $proyecto_id) }}" class="btn btn-primary btn-block">Aceptar</a>
             </table>
         </div>
      </div>

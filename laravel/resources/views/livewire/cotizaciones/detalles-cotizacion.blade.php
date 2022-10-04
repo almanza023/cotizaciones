@@ -102,9 +102,11 @@
     <br>
     @include('livewire.cotizaciones.modal-creados')
     @include('livewire.cotizaciones.buscar-piezas')
+
     @include('livewire.cotizaciones.confirmar')
     @if($categoria_id!='')
     @if(!empty($listado_andamios) && $categoria_id<=2)
+    @include('livewire.cotizaciones.modal-detalles-piezas')
     <div class="card">
         <div class="card-header with-border">
           <h4 class="card-title">ANDAMIOS AGREGADOS A COTIZACION</h4>
@@ -144,7 +146,7 @@
                             <td>{{ $item->andamio->peso }}</td>
                             <td>{{ $item->andamio->kgdias }}</td>
                             <td>
-                                <button class="btn btn-info btn-sm">Ver Piezas</button>
+                                <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#modalDetPiezas" wire:click="verPiezas({{ $item->andamio_id }})">Ver Piezas</button>
                                 <button class="btn btn-danger btn-sm" wire:click="quitar({{ $item->id }})">Quitar</button>
                             </td>
                         </tr>
@@ -314,7 +316,6 @@
                             @error('valor') <span class="text-danger error">{{ $message }}</span>@enderror
                         </td>
                          @endif
-
                         </tr>
                         <tr>
                             <th>Subtotal</th>
@@ -349,8 +350,6 @@
         </div>
       </div>
       @endif
-
-
       <br>
         <!-- /.box -->
         <script >

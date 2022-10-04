@@ -59,6 +59,7 @@ class VerCotizacion extends Component
 
     public function rechazar(){
         $this->data->estado=3;
+        $this->data->fecha_rechazo=$this->fecha;
         $this->data->observaciones=$this->observaciones;
         $this->data->save();
         session()->flash('advertencia', 'COTIZACIÓN RECHAZADA');

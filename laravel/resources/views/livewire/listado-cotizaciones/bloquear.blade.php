@@ -9,10 +9,8 @@
             </div>
             <div class="modal-body">
                 <p>¿ Esta seguro de cambiar el estado al registro seleccionado?</p>
-
             </div>
             <div class="modal-footer">
-
                 <button type="button" wire:click="updateEstado" class="btn btn-raised btn-success ml-2"><i class="mdi mdi-content-save-all">
                 </i> ACEPTAR</button>
                 <button type="button" class="btn btn-raised btn-danger ml-2" data-dismiss="modal"><i class="mdi mdi-close-octagon

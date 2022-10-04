@@ -8,7 +8,7 @@ class Cobro extends Model
 {
     protected $table = 'cobros';
     protected $fillable = ['id', 'proyecto_id', 'usuario_id', 'categoria_id',
-     'fecha_corte', 'fecha1', 'fecha2',
+     'fecha_corte', 'fecha1', 'fecha2', 'subtotal_reposicion',
      'piezas',  'dias', 'pesototal', 'pesodiatotal', 'cantidadtotal', 'subtotal', 'iva', 'total',
       'estado'];
 
@@ -59,6 +59,30 @@ class Cobro extends Model
 
     public static function getFactura($id){
         return Cobro::where('factura_id', $id)->get();
+    }
+
+    public static function getTotalSubtotal($proyecto_id){
+        $sum = Cobro::where('proyecto_id', $proyecto_id)->where('estado', 1)->sum('subtotal');
+        if(empty($sum)){
+            return 0;
+        }
+        return $sum;
+    }
+
+    public static function getTotalIva($proyecto_id){
+        $sum = Cobro::where('proyecto_id', $proyecto_id)->where('estado', 1)->sum('iva');
+        if(empty($sum)){
+            return 0;
+        }
+        return $sum;
+    }
+
+    public static function getTotalTotal($proyecto_id){
+        $sum = Cobro::where('proyecto_id', $proyecto_id)->where('estado', 1)->sum('total');
+        if(empty($sum)){
+            return 0;
+        }
+        return $sum;
     }
 
 
